@@ -9,6 +9,7 @@ export interface Pizza {
   id: string;
   name: string;
   toppings: string[];
+  price: number;
 }
 
 const kv = await Deno.openKv();
@@ -47,6 +48,7 @@ export async function upsertUser(user: User) {
       .set(userKey, user)
       .commit();
       if (!ok) throw new Error("Something went wrong.");
+      return ok
   } else {
     const ok = await kv.atomic()
       .check(oldUser)
@@ -55,6 +57,7 @@ export async function upsertUser(user: User) {
       .set(userKey, user)
       .commit();
       if (!ok) throw new Error("Something went wrong.");
+      return ok
   }
 }
 
@@ -68,6 +71,29 @@ export async function upsertPizza(pizza: Pizza) {
       .set(pizzaKey, pizza)
       .commit();
       if (!ok) throw new Error("Something went wrong.")
+      return ok
+  }
+}
+
+export async function updatePizza(pizza: Pizza) {
+  const pizzaKey = ["pizza", pizza.id]
+  const oldPizza = await kv.get<Pizza>(pizzaKey);
+
+  if (!oldPizza.value) {
+    const ok = await kv.atomic()
+      .check(oldPizza)
+      .set(pizzaKey, pizza)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
+    return ok
+  } else {
+    const ok = await kv.atomic()
+      .check(oldPizza)
+      .delete(["pizza", oldPizza.value.id])
+      .set(pizzaKey, pizza)
+      .commit();
+    if (!ok) throw new Error("Something went wrong.");
+    return ok
   }
 }
 
