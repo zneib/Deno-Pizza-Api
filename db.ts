@@ -8,6 +8,7 @@ export interface User {
 export interface Pizza {
   id: string;
   name: string;
+  toppings: string[];
 }
 
 const kv = await Deno.openKv();
@@ -68,4 +69,15 @@ export async function upsertPizza(pizza: Pizza) {
       .commit();
       if (!ok) throw new Error("Something went wrong.")
   }
+}
+
+export async function deletePizzaById(id: string) {
+  const pizzaKey = ["pizza", id];
+  const pizzaRes = await kv.get(pizzaKey);
+  if (!pizzaRes.value) return;
+  
+  await kv.atomic()
+    .check(pizzaRes)
+    .delete(pizzaKey)
+    .commit()
 }

@@ -1,5 +1,5 @@
 import { Application, Context, helpers, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { getAllUsers, getUserById, getAllPizzas, upsertUser, upsertPizza } from "./db.ts";
+import { getAllUsers, getUserById, getAllPizzas, upsertUser, upsertPizza, deletePizzaById } from "./db.ts";
 
 const { getQuery } = helpers;
 const router = new Router();
@@ -24,6 +24,10 @@ router
     const body = ctx.request.body();
     const user = await body.value;
     await upsertPizza(user);
+  })
+  .delete("/pizzas/:id", async (ctx: Context) => {
+    const { id } = getQuery(ctx, { mergeParams: true });
+    await deletePizzaById(id);
   })
 
 const app = new Application();
